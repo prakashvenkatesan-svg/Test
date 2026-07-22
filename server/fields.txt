@@ -1,0 +1,614 @@
+Name same as ID proof
+Expiry Date
+Expiry Date_2
+1_6
+undefined_2
+any document notified by Central Government
+Identification Number
+Line 1
+Line 2
+Line3
+CityTownVillage 1
+CityTownVillage 2
+District
+Pin Code
+Country
+Line 1 1
+Line 1 2
+Line 1 3
+TownVillage 1
+TownVillage 2
+District_2
+Pin Code_2
+Country_2
+Unspecified_2
+1_7
+Expiry Date_3
+Expiry Date_4
+1_8
+2_8
+any document notified by Central Government_2
+Identification Number_2
+Branch Name
+Form No
+Branch Code
+Client UCC
+Version NoRow1
+11Row1
+Client Name
+2 B MOTHERS NAME
+3 C DATE OF BIRTH
+4 PERMANENT ADDRESS OF RESIDENT APPLICANT IF DIFFERENT FROM ABOVE B1 OR OVERSEAS ADDRESS MANDATORY FOR NONRESIDENT APPLICANTRow1
+SOLEFIRST HOLDERS NAME
+SECOND HOLDERS NAME
+PAN UID_2
+THIRD HOLDERS NAME
+PAN UID_3
+SECOND HOLDER338
+THIRD HOLDER338
+ACCOUNT NO
+BANK NAME
+BRANCH ADDRESS
+RBI APPROVAL DATE RBI REFERENCE NO
+ACCOUNT NO_2
+BANK NAME_2
+BRANCH ADDRESS_2
+RBI APPROVAL DATE RBI REFERENCE NO_2
+BENEFICIARY ACCOUNT NOCDSL
+BENEFICIARY NAMECDSL
+AP NAME SEBI REG NO
+REGISTERED OFFICE ADDRESS
+NAME OF STOCK BROKER AP IF ANY
+CLIENT CODE EXCHANGE
+IF ECN SPECIFY YOUR EMAIL ID
+NAME OF THE INTRODUCER
+ADDRESS OF THE INTRODUCER
+UCC ALLOCATED TO THE CLIENT
+NAME OF THE SOLEFIRST HOLDER
+NAME OF THE SECOND HOLDER
+NAME OF THE THIRD HOLDER
+and have executed the Trad
+Email idSecond Holder
+Email idThird Holder
+If t cked on Others andor USA p ease prov de a deta s under po nt no 2345 be ow
+NOMINEES REGISTER NUMBER
+CLIENT ID ONLY FOR DEMAT ACCOUNT
+SOLEFIRST HOLDER NAME
+SECOND HOLDER NAME
+THIRD HOLDER NAME
+I hereby declare that the aforesaid mobile number belongs to
+I hereby declare that the aforesaid Email ID belongs to
+Others_12
+INe the cliens mentioned herein below holding BO ID 12100800
+Second HolderRow1
+Third HolderRow1
+Second HolderRow1_2
+Third HolderRow1_2
+Second HolderRow1_3
+Third HolderRow1_3
+Second HolderRow1_4
+Third HolderRow1_4
+SECOND HOLDER3638
+THIRD HOLDER3638
+Second Holders Name
+The mobile number is registered in the name of
+DATE OF BIRTH
+GENDER
+ADDRESS
+PROOF OF ADDRESS POA
+PROOF OF IDENTITY POI
+GENERATED ON
+3838
+PASSPORT_4
+PAN_4
+1338
+UCC
+Name of the Account Ho der
+1138
+Mobile Number
+DP ID CLIENT ID
+DP ID
+SIGNATURE_2
+DATE_3
+EMPLOYEE MANAGER
+EMPLOYEE CODE ACM0008
+NAME OF THE EMPLOYEE NANDAKUMAR S
+Place
+ANY OTHER INFORMATION
+Networth n Rs
+MICR CODE IFSC CODE_2
+MICR CODE IFSC CODE
+CLIENT NAME
+PAN UID
+1 ADDRESS FOR CORRESPONDENCRESIDENCERow2
+1 ADDRESS FOR CORRESPONDENCRESIDENCERow1
+Mobile No
+A Correspondence Local Address Line 1 Line 2 Line3 Pin Code State Country Address Type ResidentialBusiness Residential Business Registered Office Unspecified CityTownVillage DistrictRow1
+NAME
+PLACE
+PAN NUMBER
+RELATIONSHIP
+4 PERMANENT ADDRESS OF RESIDENT APPLICANT IF DIFFERENT FROM ABOVE B1 OR OVERSEAS ADDRESS MANDATORY FOR NONRESIDENT APPLICANTRow2
+IPV Date
+Modification
+NEW KYC
+Normal
+EKYC OTP
+EKYC BIO
+Online KYC
+Offline KYC
+Digilocker
+Male
+Female
+Transgender
+Single
+Married
+Indian
+Other
+Non Resident Indian
+Resident Individual
+Foreign national
+Person of Origin
+Other Text
+Client Photo_af_image
+Aadhaar Card
+Passport Number
+Voter ID
+Driving License
+NREGA Job Card
+NPR
+Others
+Residential/Business
+Residential
+Business
+Registered Office
+Unspecified
+Residential1
+Registered Office1
+Residential/Business1
+A
+B
+C
+D
+E
+F
+Z
+EMAIL ID
+TEL.NUMBER
+undefined_4
+OVD
+NAME OF THE APPLICANT
+FATHERS/SPOUSE NAME
+MALE
+FEMALE
+SINGLE
+MARRIED
+INDIAN
+OTHERS
+RI
+NRI
+FN
+POIO
+UID
+PASS
+VOTER ID
+DRIVING LICENSE
+OTHERS POIS
+DELETION OF RERLATED PERSON
+DELETION
+ASSIGNEE NAME
+ADDITION OF RELATED PERSON
+POI-UID
+POI-PAN
+POI-VOTER ID
+POI-DL
+POI-PASSPORT
+POI-OTHERS
+ORIGINAL
+ATTESTED
+IPV DONE ON
+1_9
+1-10
+INDIVIDUAL-STATUS
+NRI-STATUS
+FOREIGN NATIONAL-STATUS
+INDIVIDUAL RES-SUB STATUS
+NRI-SUB STATUS
+NRI PROMOTER-SUB STATUS
+NRI DEPOSITORY-SUB STATUS
+FOREIGN NATIONAL-SUB STATUS
+MINOR-SUB STATUS
+IND DIRECTOR-SUB STATUS
+IND HUF-SUB STATUS
+OTHERS SPECIFY-SUB STATUS
+NRI NON-SUB STATUS
+NRI NON REP PROMOTER-SUB STATUS
+OTHERS SPEC-SUB STATUS
+OTHERS SPEC1-SUB STATUS
+FOREIGN NATIONAL DEP-SUB STATUS
+YES
+NO
+NO1
+YES1
+ASR-PER SEBI
+DAILY ASR-PER SEBI
+WEEKLY
+FORTNIGHTYLY
+MONTHLY
+YES2
+YES-RTA
+NO-RTA
+ANNUAL REPORT ELECTRONIC
+BOTH PHYSICAL & ELECTRONIC
+PHYSICAL
+NO2
+NO-ECS
+YES-ECS
+SAVINGS
+CURRENT
+NRE
+NRO-NRI
+CURRENT-ACC
+OTHERS-ACC
+NRE-NRI ACC
+NRO-NRI ACC
+SAVINGS-ACC
+YES-PAST ACTION
+NO-PAST ACTION
+PHY-ADD
+ELECTRONIC-ADD
+YES-INT TRADING
+NO-INT TRADING
+REMISIER-SOTI
+AUT PERSON-SOTI
+EXT CLIENT-SOTI
+EMPLOYEE-SOTI
+OTHERS-SOTI
+BELOW 1 LAC-GAID
+1-5 LAC-GAID
+5-10 LAC-GAID
+10-25 LAC-GAID
+>25 LAC-GAID
+PVT-OCC
+PUB-OCC
+GOV SER-OCC
+PROFESSIONAL-OCC
+AGRI-OCC
+RET-OCC
+HOUSEWIFE-OCC
+BUSINESS-OCC
+STUDENT-OCC
+OTHERS-OCC
+PEP-PEP
+RPEP-RPEP
+INVESTEMENT-POOTA
+TRADING-POOTA
+ARBITRAGE-POOTA
+OPTION2-OFI
+JOINTLY-MOOFE
+ANY-MOOFE
+FIRST HOLDER-MOOFE
+ALL HOLDER-MOOFE
+SEC HOLDER-MOOFE
+THIRD HOLDER-MOOFE
+INDIA-FATCA
+USA-FATCA
+OTHERS-FATCA
+INDIA2-FATCA
+INDIA3-FATCA
+USA2-FATCA
+USA3-FATCA
+OTHERS3-FATCA
+OTHERS2-FATCA
+Spec fy C ty and Country of B rth1
+Spec fy C ty and Country of B rth2
+Spec fy C ty and Country of B rth3
+Specify Countryies of Tax Residency Nationality  Green card holder other than India1
+Specify Countryies of Tax Residency Nationality  Green card holder other than India2
+Specify Countryies of Tax Residency Nationality  Green card holder other than India3
+Tax Ident f cat on Number for USA or its functional equ va ent other than USA1
+Tax Ident f cat on Number for USA or its functional equ va ent other than USA2
+Tax Ident f cat on Number for USA or its functional equ va ent other than USA3
+Business1
+SALARY1-SOW
+BUSINESS1-SOW
+GIFT1-SOW
+ROYALTY1-SOW
+OTHERS1-SOW
+PRIZE MONEY1-SOW
+RENT1-SOW
+ANCESTRAL1-SOW
+SALARY2-SOW
+BUSINESS2-SOW
+GIFT2-SOW
+RENT2-SOW
+ROYALTY2-SOW
+OTHERS2-SOW
+PRIZE MONEY2-SOW
+ANCESTRAL2-SOW
+SALARY3-SOW
+BUSINESS3-SOW
+GIFT3-SOW
+RENT3-SOW
+ROYALTY3-SOW
+OTHERS3-SOW
+PRIZE MONEY3-SOW
+ANCESTRAL3-SOW
+NAME OF THE NOMINEES MRMS1
+SHARE OF EQUALLY IF NOT EQUALLY PLEASE1
+NAME OF THE NOMINEES MRMS2
+SHARE OF EQUALLY IF NOT EQUALLY PLEASE2
+NAME OF THE NOMINEES MRMS3
+SHARE OF EQUALLY IF NOT EQUALLY PLEASE3
+RELATIONSHIP WITH THE APPLICANT IF ANY1
+RELATIONSHIP WITH THE APPLICANT IF ANY2
+RELATIONSHIP WITH THE APPLICANT IF ANY3
+I/WE WISH
+PASS-NOMINEE ID
+PAN-NOMINEE ID
+AADHAAR-NOMINEE ID
+OTHER-NOMINEE ID
+PASSPORT1
+PAN1
+Aadhaar  Mask first 8 digit number1
+Other proof of identity1
+Address1
+City1
+State1
+Pin1
+Mobile noTelephone No1
+Email ID1
+FAX No Optional Field1
+Date of b rth mandatory f Nom nee s a minor1
+First Name M dd e Name Last Name Name of the Guard an of Nom nee  f nom nee is a minor1
+Relationship of the Guardian with the Nominee1
+Relationship of the Guardian with the Nominee2
+First Name M dd e Name Last Name Name of the Guard an of Nom nee  f nom nee is a minor2
+Date of b rth mandatory f Nom nee s a minor2
+FAX No Optional Field2
+Email ID2
+Mobile noTelephone No2
+Pin2
+State2
+City2
+Other proof of identity2
+Aadhaar  Mask first 8 digit number2
+PAN2
+PASSPORT2
+PASSPORT3
+PAN3
+Aadhaar  Mask first 8 digit number3
+Other proof of identity3
+Address3
+City3
+State3
+Pin3
+Mobile noTelephone No3
+Email ID3
+FAX No Optional Field3
+Date of b rth mandatory f Nom nee s a minor3
+First Name M dd e Name Last Name Name of the Guard an of Nom nee  f nom nee is a minor3
+Relationship of the Guardian with the Nominee3
+POII-TEXT
+NAME OF THE NOMINEES MRMS_4
+SHARE OF EACH EQUALLY IF NOT EQUALLY PLEASE4
+RELATIONSHIP WITH THE APPLICANT IF ANY_4
+Aadhaar Mask first 8 digit number4
+Other proof of identity_4
+Address_4
+City_4
+State_4
+Pin_4
+Mobile noTelephone No_4
+Email ID_4
+FAX No Optional Field_4
+Date of b rth mandatory f Nom nee s a minor_4
+Name of the Guard an of Nom nee  f nom nee is a minor First Name M dd e Name Last Name4
+Relationship of the Guardian with the Nominee_4
+Relationship of the Guardian with the Nominee_5
+Name of the Guard an of Nom nee  f nom nee is a minor First Name M dd e Name Last Name5
+Date of b rth mandatory f Nom nee s a minor_5
+FAX No Optional Field_5
+Email ID_5
+Mobile noTelephone No_5
+Pin_5
+State_5
+City_5
+Address_5
+Other proof of identity_5
+Aadhaar Mask first 8 digit number5
+PAN_5
+PASSPORT_5
+RELATIONSHIP WITH THE APPLICANT IF ANY_5
+SHARE OF EACH EQUALLY IF NOT EQUALLY PLEASE5
+NAME OF THE NOMINEES MRMS_5
+NAME OF THE NOMINEES MRMS_6
+SHARE OF EACH EQUALLY IF NOT EQUALLY PLEASE6
+RELATIONSHIP WITH THE APPLICANT IF ANY_6
+PASSPORT_6
+PAN_6
+Aadhaar Mask first 8 digit number6
+Other proof of identity_6
+Address_6
+City_6
+State_6
+Pin_6
+Mobile noTelephone No_6
+Email ID_6
+FAX No Optional Field_6
+Date of b rth mandatory f Nom nee s a minor_6
+Name of the Guard an of Nom nee  f nom nee is a minor First Name M dd e Name Last Name6
+Relationship of the Guardian with the Nominee_6
+PASS-NOMINEE ID2
+PAN-NOMINEE ID2
+AADHAAR-NOMINEE ID2
+OTHER-NOMINEE ID2
+POII-TEXT2
+PASS-NOMINEE ID3
+PAN-NOMINEE ID3
+AADHAAR-NOMINEE ID3
+OTHER-NOMINEE ID3
+POII-TEXT3
+NAME OF THE NOMINEES MRMS_7
+SHARE OF EACH EQUALLY IF NOT EQUALLY7
+RELATIONSHIP WITH THE APPLICANT IF ANY_7
+PASSPORT_7
+PAN_7
+AadhaarMask first 8 digit number_7
+Other proof of identity_7
+Address_7
+City_7
+State_7
+Pin_7
+Mobile noTelephone No_7
+Email ID_7
+FAX No  Optional Field_7
+Date of birth mandatory if Nominee is a minor_7
+Name of the Guardian of Nominee if nominee is a minor First Name Last Name Middle name_7
+Relationship of the Guardian with the Nominee_7
+Relationship of the Guardian with the Nominee_8
+Name of the Guardian of Nominee if nominee is a minor First Name Last Name Middle name_8
+Date of birth mandatory if Nominee is a minor_8
+FAX No  Optional Field_8
+Email ID_8
+Mobile noTelephone No_8
+Pin_8
+State_8
+City_8
+Address_8
+Other proof of identity_8
+AadhaarMask first 8 digit number_8
+PASSPORT_8
+RELATIONSHIP WITH THE APPLICANT IF ANY_8
+SHARE OF EACH EQUALLY IF NOT EQUALLY_8
+NAME OF THE NOMINEES MRMS_8
+NAME OF THE NOMINEES MRMS_9
+SHARE OF EACH EQUALLY IF NOT EQUALLY9
+RELATIONSHIP WITH THE APPLICANT IF ANY_9
+PASSPORT_9
+PAN_9
+AadhaarMask first 8 digit number_9
+Other proof of identity_9
+Address_9
+City_9
+State_9
+Pin_9
+Mobile noTelephone No_9
+Email ID_9
+FAX No  Optional Field_9
+Date of birth mandatory if Nominee is a minor9
+Name of the Guardian of Nominee if nominee is a minor First Name Last Name Middle name9
+Relationship of the Guardian with the Nominee_9
+Relationship of the Guardian with the Nominee_10
+Name of the Guardian of Nominee if nominee is a minor First Name Last Name Middle name10
+Date of birth mandatory if Nominee is a minor10
+FAX No  Optional Field10
+Email ID_10
+Mobile noTelephone No_10
+Pin_10
+State_10
+City_10
+Address_10
+Other proof of identity_10
+AadhaarMask first 8 digit number_10
+PAN_10
+PASSPORT_10
+RELATIONSHIP WITH THE APPLICANT IF ANY_10
+SHARE OF EACH EQUALLY IF NOT EQUALLY10
+NAME OF THE NOMINEES MRMS_10
+NAME-AMC/DP
+YES/NO-AMC/DP
+nominee number1
+FOLIO-RS
+%ACC ASSET
+E-SIGN2
+E-SIGN3
+FIRST ADDRESS WITNESS
+SECOND ADDRESS WITNESS
+FIRST SIGN WITNESS
+SECOND SIGN WITNESS
+THIRD SIGN WITNESS
+THIRD ADDRESS WITNESS
+FIRST WITNESS NAME
+SECOND WITNESS NAME
+THIRD WITNESS NAME
+SECOND HOLDER2
+THIRD HOLDER3
+I/WE DECLRATION
+I/WE BSDA
+I/WE DONT BSDA
+SCHEME 1-ACC CHARGES
+SCHEME 2-ACC CHARGES
+SELF-RELATIONSHIP
+SPOUSE-RELATIONSHIP
+Others_11
+DEP PARENTS-RELATIONSHIP
+DEP CHILDRENS-RELATIONSHIP
+OTHERS-RELATIONSHIP
+I/WE MONTHLY
+I/WE QUARTERLY
+LANDMARK
+CITY
+DISTRICT
+PINCODE
+STATE
+COUNTRY
+TEL OFFICE
+TEL RESIDENCE
+LANDMARK1
+CITY1
+DISTRICT1
+PINCODE1
+STATE1
+COUNTRY1
+Client Signature_af_image
+DATE
+APPLICATION NUMBER
+DP INTERVAL REFERENCE NUMBER
+BOID
+OTHERS-INPUT
+OTHERS-TEXT
+OTHERS-TEXT1
+PAN UID2
+PAN UID3
+GUARDIANS NAME
+EMAIL
+AP NAME
+PHONE
+WEBSITE
+NAME OF THE STOCK BROKER
+CLIENT CODE UCC
+DETAILS OF DISPUTESDUES PENDING FROMTO SUCH STOCK BROKERAP
+IF CLIENT IS DEALING THROUGH THE AP, PROVIDE THE FOLLOWING DETAILS:
+MOBILE NUMBER
+SIGNATURE OF THE INTRODUCER
+AS ON DATE
+TRADING EXPERIENCE
+Client PAN_af_image
+5 A PAN
+5 B AADHAAR NO
+2_5
+2_6
+2_7
+Generation date
+Download Date
+Masked Aadhaar
+Date of Birth
+Gender
+C/O, S/O, D/O
+Address
+Landmark
+Locality
+City/District
+Pincode
+State
+Photo_af_image
+1_5
+Name
+Address2
+Digital e-sign stamp
+FathersSpouses Name 1
+Date of birth
+Maiden name
+Sole  First Holders Name
+s Name

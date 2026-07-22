@@ -1,0 +1,4 @@
+*.zip
+node_modules/
+generated-pdfs/
+uploads/
