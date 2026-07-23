@@ -74,7 +74,7 @@ const Emailregistration = () => {
 
     // TERMS CHECK
     if (!formData.terms_accepted) {
-      newErrors.terms_accepted = "Please accept the Terms & Conditions to continue.";
+      newErrors.terms_accepted = "Please accept Terms & Conditions";
 
       isValid = false;
     }
@@ -210,7 +210,7 @@ const Emailregistration = () => {
             </div>
 
             {/* TERMS */}
-            <div className='d-flex checkbox-content' style={{ position: 'relative' }}>
+            <div className='d-flex checkbox-content'>
               <input
                 type='checkbox'
                 id='terms'
@@ -223,40 +223,8 @@ const Emailregistration = () => {
               <div className='terms-wrapper'>
                 <label htmlFor='terms'>
                   Accept all{" "}
-                  <span 
-                    className='terms-text'
-                    onClick={() => setShowModal(!showModal)}
-                    style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
-                  >
-                    Terms & Conditions*
-                  </span>
+                  <span className='terms-text'>Terms & Conditions*</span>
                 </label>
-
-                {showModal && (
-                  <div className="terms-popup" style={{
-                      position: 'absolute', top: '100%', left: '0', 
-                      background: '#fff', border: '1px solid #ccc', padding: '15px', 
-                      borderRadius: '5px', zIndex: 10, marginTop: '5px', width: '100%',
-                      boxShadow: '0px 4px 6px rgba(0,0,0,0.1)'
-                    }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                       <strong>Terms & Conditions</strong>
-                       <span style={{ cursor: 'pointer', fontWeight: 'bold' }} onClick={() => setShowModal(false)}>X</span>
-                    </div>
-                    <p style={{ fontSize: '13px', lineHeight: '1.5', margin: 0, textAlign: 'left' }}>
-                      I hereby give my consent to undertake the online KYC process for
-                      opening a Trading/Demat account with Aionion Capital Market Services
-                      Private Limited. I am voluntarily providing this email ID and mobile
-                      number to AIONION CAPITAL MARKET SERVICES PRIVATE LIMITED for
-                      communication purposes. I confirm that the provided email ID and
-                      mobile number belong solely to me. I request all formal, informal, and
-                      promotional communications to be sent to the provided email ID and
-                      mobile number. Additionally, I voluntarily authorize AIONION CAPITAL
-                      MARKET SERVICES PRIVATE LIMITED to send all trading and
-                      transaction-related statements to this mobile number.
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -269,22 +237,16 @@ const Emailregistration = () => {
             {errors.general && <p className='error-text'>{errors.general}</p>}
 
             {/* BUTTON */}
-            <div onClick={() => { if (!formData.terms_accepted) validateForm(); }}>
-              <button
-                className='submit-btn'
-                onClick={handleSubmit}
-                disabled={loading || !formData.terms_accepted}
-                type='button'
-                style={{
-                  pointerEvents: !formData.terms_accepted ? 'none' : 'auto',
-                  opacity: !formData.terms_accepted ? 0.6 : 1
-                }}
-              >
-                <img src={otp} alt='otp' className='btn-icon' />
+            <button
+              className='submit-btn'
+              onClick={handleSubmit}
+              disabled={loading}
+              type='button'
+            >
+              <img src={otp} alt='otp' className='btn-icon' />
 
-                {loading ? "Sending..." : "Send OTP"}
-              </button>
-            </div>
+              {loading ? "Sending..." : "Send OTP"}
+            </button>
 
             <div className='note-section'>
               <p>
