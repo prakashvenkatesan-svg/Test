@@ -100,15 +100,17 @@ const Numberotp = () => {
       setLoading(true);
       setMessage("");
 
-      await api.post("/contact/verify-mobile-otp", {
+      const response = await api.post("/contact/verify-mobile-otp", {
         application_id: applicationId,
         mobile_number: mobileNumber,
         otp: fullOtp,
       });
 
       toast.success("Mobile number verified successfully");
+      
+      const nextRoute = response.data?.data?.next_step || "/emailverify";
 
-      navigate("/emailverify", {
+      navigate(nextRoute, {
         state: {
           application_id: applicationId,
         },

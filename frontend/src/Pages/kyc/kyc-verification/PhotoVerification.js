@@ -21,18 +21,64 @@ const PhotoVerification = () => {
 
   const [error, setError] = useState("");
 
+  const [tokenFromUrl, setTokenFromUrl] = useState("");
+  const [validatingToken, setValidatingToken] = useState(false);
+  const [sharedSuccess, setSharedSuccess] = useState(false);
+  const [tokenError, setTokenError] = useState(false);
+
   const openCamera = () => {
     setCameraOpen(true);
     setCapturedImage(null);
     setError("");
   };
   useEffect(() => {
-  const loadModels = async () => {
-    await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+
+    if (urlToken) {
+      setTokenFromUrl(urlToken);
+      validateUrlToken(urlToken);
+    } else {
+      generateTokenAndUpdateUrl();
+    }
+
+    const loadModels = async () => {
+      await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+    };
+
+    loadModels();
+  }, []);
+
+  const generateTokenAndUpdateUrl = async () => {
+    try {
+      const appId = localStorage.getItem("application_id");
+      if (!appId) return;
+
+      const res = await api.post("/photo/generate-token", { application_id: appId });
+      if (res.data.success) {
+        const newToken = res.data.token;
+        setTokenFromUrl(newToken);
+        window.history.replaceState(null, "", window.location.pathname + "?token=" + newToken);
+      }
+    } catch (err) {
+      console.log("Token generation error:", err);
+    }
   };
 
-  loadModels();
-}, []);
+  const validateUrlToken = async (t) => {
+    setValidatingToken(true);
+    try {
+      const res = await api.get(`/photo/validate-token/${t}`);
+      if (res.data.success) {
+        setTokenError(false);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid or expired link.");
+      setTokenError(true);
+    } finally {
+      setValidatingToken(false);
+    }
+  };
 
 
   // CAPTURE PHOTO
@@ -85,22 +131,35 @@ const PhotoVerification = () => {
         return;
       }
 
-      const applicationId = Number(localStorage.getItem("application_id"));
+      if (!tokenFromUrl) {
+        const applicationId = Number(localStorage.getItem("application_id"));
 
-      if (!applicationId) {
-        setError("Application ID is missing. Please restart the KYC flow.");
-        return;
+        if (!applicationId) {
+          setError("Application ID is missing. Please restart the KYC flow.");
+          return;
+        }
       }
 
       setLoading(true);
       setError("");
 
-      await api.post("/photo/upload", {
+      const payload = {
         image: capturedImage,
-        application_id: applicationId,
-      });
+      };
 
-      navigate("/uploadsignature");
+      if (tokenFromUrl) {
+        payload.token = tokenFromUrl;
+      } else {
+        payload.application_id = Number(localStorage.getItem("application_id"));
+      }
+
+      await api.post("/photo/upload", payload);
+
+      if (tokenFromUrl && !localStorage.getItem("application_id")) {
+        setSharedSuccess(true);
+      } else {
+        navigate("/uploadsignature");
+      }
     } catch (error) {
       console.log("PHOTO UPLOAD ERROR:", error.response?.data || error.message);
 
@@ -117,6 +176,16 @@ const PhotoVerification = () => {
         completedSteps={["contact", "identify", "personal", "scheme"]}
       />
 
+      {validatingToken && <div className='alert alert-info mt-3'>Validating secure link...</div>}
+      
+      {sharedSuccess ? (
+        <div className='row mt-5 text-center'>
+          <div className='col-12'>
+            <h3 className='text-success'>Live Photo Uploaded Successfully!</h3>
+            <p>You can now close this tab and return to the main device if applicable.</p>
+          </div>
+        </div>
+      ) : (
       <div className='row'>
         {/* LEFT COLUMN */}
         <div className='col-lg-6 d-flex justify-content-center'>
@@ -144,7 +213,7 @@ const PhotoVerification = () => {
             </div>
 
             {/* OPEN CAMERA BUTTON */}
-            {!cameraOpen && !capturedImage && (
+            {!cameraOpen && !capturedImage && !validatingToken && !tokenError && (
               <div className='d-flex justify-content-center mt-3'>
                 <button
                   type='button'
@@ -240,6 +309,7 @@ const PhotoVerification = () => {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 };
