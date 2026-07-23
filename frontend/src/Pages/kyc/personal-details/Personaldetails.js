@@ -16,7 +16,20 @@ import standingiconwhite from "../../../assets/standingiconwhite.png";
 import phone from "../../../assets/phone.png";
 import email from "../../../assets/email.png";
 
-const EMPTY_STANDING_INSTRUCTIONS = {
+export const DEFAULT_STANDING_INSTRUCTIONS = {
+  depositoryCredit: "Yes",
+  pledgeInstructions: "Yes",
+  accountStatementRequirement: "Monthly",
+  electronicTransactionStatement: "Yes",
+  shareEmailWithRta: "Yes",
+  annualReport: "Electronic",
+  dividendInterestEcs: "Yes",
+  contractNote: "Electronic",
+  trustFacility: "No",
+  disAtAccountOpening: "No",
+};
+
+export const EMPTY_STANDING_INSTRUCTIONS = {
   depositoryCredit: "",
   pledgeInstructions: "",
   accountStatementRequirement: "",
@@ -28,6 +41,71 @@ const EMPTY_STANDING_INSTRUCTIONS = {
   trustFacility: "",
   disAtAccountOpening: "",
 };
+
+export const STANDING_QUESTIONS = [
+  {
+    name: "depositoryCredit",
+    question:
+      "I/We instruct the DP to receive each and every Depository credit in my/our account.",
+    options: ["Yes", "No"],
+  },
+  {
+    name: "pledgeInstructions",
+    question:
+      "I/We would like to instruct the DP to accept all the pledge instructions in my/our account without any further instruction from my end.",
+    options: ["Yes", "No"],
+  },
+  {
+    name: "accountStatementRequirement",
+    question: "Account Statement Requirement (as per SEBI Regulation)",
+    options: ["Daily", "Weekly", "Fortnightly", "Monthly"],
+    grid: true,
+  },
+  {
+    name: "electronicTransactionStatement",
+    question:
+      "I/We request you to send Electronic Transaction-cum-Holding Statement to the email ID.",
+    options: ["Yes", "No"],
+  },
+  {
+    name: "shareEmailWithRta",
+    question: "I/We would like to share the email ID with RTA.",
+    options: ["Yes", "No"],
+  },
+  {
+    name: "annualReport",
+    question: "I/We would like to receive the Annual Report.",
+    options: ["Physical", "Electronic", "Both Physical and Electronic"],
+    grid: true,
+  },
+  {
+    name: "dividendInterestEcs",
+    question:
+      "I/We wish to receive dividend/interest directly into my/our account as given below through ECS.",
+    options: ["Yes", "No"],
+  },
+  {
+    name: "contractNote",
+    question: "Whether you wish to receive contract note through.",
+    options: ["Physical", "Electronic"],
+  },
+  {
+    name: "trustFacility",
+    question:
+      "I/We wish to avail the TRUST facility using the Mobile number registered for SMS Alert Facility.",
+    options: ["Yes", "No"],
+  },
+  {
+    name: "disAtAccountOpening",
+    question: "Whether you wish to receive DIS at the time of account opening.",
+    options: ["Yes", "No"],
+  },
+];
+
+const getPrefilledValues = (initialValues) => ({
+  ...DEFAULT_STANDING_INSTRUCTIONS,
+  ...(initialValues || {}),
+});
 
 const normalizeGenderLabel = (value) => {
   const normalized = String(value || "")
@@ -83,8 +161,8 @@ const PersonalDetails = () => {
   const [loading, setLoading] = useState(false);
   const [showDdpiPopup, setShowDdpiPopup] = useState(false);
 
-  const [standingInstructions, setStandingInstructions] = useState(
-    EMPTY_STANDING_INSTRUCTIONS,
+  const [standingInstructions, setStandingInstructions] = useState(() =>
+    getPrefilledValues(),
   );
 
   const [standingErrors, setStandingErrors] = useState({});
@@ -321,6 +399,25 @@ const PersonalDetails = () => {
     setMainFormError("");
   };
 
+  const resetToPrefilledValues = () => {
+    setStandingInstructions(getPrefilledValues());
+    setStandingErrors({});
+    setStandingCompleted(false);
+    setMainFormError("");
+  };
+
+  const clearAllSelections = () => {
+    setStandingInstructions({ ...EMPTY_STANDING_INSTRUCTIONS });
+    setStandingErrors({});
+    setStandingCompleted(false);
+    setMainFormError("");
+  };
+
+  const closeStandingPopup = () => {
+    setShowStandingPopup(false);
+    setStandingErrors({});
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -344,6 +441,10 @@ const PersonalDetails = () => {
 
     if (!formData.education) {
       newErrors.education = "Education is required";
+    }
+
+    if (!formData.annualIncome) {
+      newErrors.annualIncome = "Annual income is required";
     }
 
     if (!formData.tradingExperience) {
@@ -634,17 +735,11 @@ const PersonalDetails = () => {
                       <option value='' disabled hidden>
                         Select Your Net Worth
                       </option>
-                      <option value='Below 1,00,000'>Below 1,00,000</option>
-                      <option value='1,00,000 - 5,00,000'>
+                      <option value="< 1,00,000">&lt; 1,00,000</option>
+                      <option value="1,00,000 - 5,00,000">
                         1,00,000 - 5,00,000
                       </option>
-                      <option value='5,00,000 - 10,00,000'>
-                        5,00,000 - 10,00,000
-                      </option>
-                      <option value='10,00,000 - 25,00,000'>
-                        10,00,000 - 25,00,000
-                      </option>
-                      <option value='Above 25,00,000'>Above 25,00,000</option>
+                      <option value="5,00,000+">5,00,000+</option>
                     </select>
                     <label>
                       Net worth (in Rupees) <span>*</span>
@@ -720,6 +815,31 @@ const PersonalDetails = () => {
                   )}
                 </div>
 
+                <div className="col-12">
+                  <div className="floating-group">
+                    <select
+                      name="annualIncome"
+                      className="floating-select"
+                      value={formData.annualIncome}
+                      onChange={handleChange}
+                    >
+                      <option value="" disabled hidden>
+                        Select Annual Income
+                      </option>
+                      <option value="< 1 Lakh">&lt; 1 Lakh</option>
+                      <option value="1 - 5 Lakh">1 - 5 Lakh</option>
+                      <option value="5 - 10 Lakh">5 - 10 Lakh</option>
+                      <option value="10 Lakh+">10 Lakh+</option>
+                    </select>
+                    <label>
+                      Annual Income <span>*</span>
+                    </label>
+                  </div>
+                  {errors.annualIncome && (
+                    <p className="error-text">{errors.annualIncome}</p>
+                  )}
+                </div>
+
                 <div className='col-12'>
                   <div className='floating-group'>
                     <select
@@ -777,8 +897,8 @@ const PersonalDetails = () => {
                       <option value='' disabled hidden>
                         Select Running Account Authorization
                       </option>
-                      <option value='Monthly'>Monthly</option>
-                      <option value='Quarterly'>Quarterly</option>
+                      <option value='Yes'>Yes</option>
+                      <option value='No'>No</option>
                     </select>
                     <label>
                       Running Account Authorization <span>*</span>
@@ -1046,7 +1166,7 @@ const PersonalDetails = () => {
                 <div className='d-flex align-items-center gap-2'>
                   <img
                     src={standingiconwhite}
-                    alt='standingiconwhite'
+                    alt='Standing instructions'
                     className='iconimage-white'
                   />
                   <h4 className='mb-0'>
@@ -1054,446 +1174,66 @@ const PersonalDetails = () => {
                     Instructions
                   </h4>
                 </div>
+
+                <button
+                  type="button"
+                  className="standing-close-btn"
+                  onClick={closeStandingPopup}
+                  aria-label="Close standing instructions"
+                >
+                  ×
+                </button>
               </div>
 
               <div className='standing-popup-body'>
-                {/* Depository Credit */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    I/We instruct the DP to receive each and every Depository
-                    credit in my/our account.
-                    {standingErrors.depositoryCredit && (
-                      <small className='standing-error'>
-                        {standingErrors.depositoryCredit}
-                      </small>
-                    )}
-                  </div>
+                <p className="standing-prefill-note">
+                  These options are prefilled. You can change any selection
+                  before submitting.
+                </p>
 
-                  <div className='standing-options'>
-                    <label>
-                      <input
-                        type='radio'
-                        name='depositoryCredit'
-                        checked={
-                          standingInstructions.depositoryCredit === "Yes"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "depositoryCredit",
-                            "Yes",
-                          )
-                        }
-                      />
-                      Yes
-                    </label>
+                {STANDING_QUESTIONS.map(({ name, question, options, grid }) => (
+                  <div className="standing-row" key={name}>
+                    <div className="standing-question">
+                      {question}
 
-                    <label>
-                      <input
-                        type='radio'
-                        name='depositoryCredit'
-                        checked={standingInstructions.depositoryCredit === "No"}
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "depositoryCredit",
-                            "No",
-                          )
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
+                      {standingErrors[name] && (
+                        <small className="standing-error">
+                          {standingErrors[name]}
+                        </small>
+                      )}
+                    </div>
 
-                {/* Pledge Instructions */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    I/We would like to instruct the DP to accept all the pledge
-                    instructions in my/our account without any further
-                    instruction from my end.
-                    {standingErrors.pledgeInstructions && (
-                      <small className='standing-error'>
-                        {standingErrors.pledgeInstructions}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className='standing-options'>
-                    <label>
-                      <input
-                        type='radio'
-                        name='pledgeInstructions'
-                        checked={
-                          standingInstructions.pledgeInstructions === "Yes"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "pledgeInstructions",
-                            "Yes",
-                          )
-                        }
-                      />
-                      Yes
-                    </label>
-
-                    <label>
-                      <input
-                        type='radio'
-                        name='pledgeInstructions'
-                        checked={
-                          standingInstructions.pledgeInstructions === "No"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "pledgeInstructions",
-                            "No",
-                          )
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                {/* Account Statement */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    Account Statement Requirement (as per SEBI Regulation)
-                    {standingErrors.accountStatementRequirement && (
-                      <small className='standing-error'>
-                        {standingErrors.accountStatementRequirement}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className='standing-options standing-options-grid'>
-                    {["Daily", "Weekly", "Fortnightly", "Monthly"].map(
-                      (item) => (
-                        <label key={item}>
+                    <div
+                      className={`standing-options ${
+                        grid ? "standing-options-grid" : ""
+                      }`}
+                    >
+                      {options.map((option) => (
+                        <label key={option}>
                           <input
-                            type='radio'
-                            name='accountStatementRequirement'
-                            checked={
-                              standingInstructions.accountStatementRequirement ===
-                              item
-                            }
-                            onChange={() =>
+                            type="radio"
+                            name={name}
+                            value={option}
+                            checked={standingInstructions[name] === option}
+                            onChange={(event) =>
                               handleStandingInstructionChange(
-                                "accountStatementRequirement",
-                                item,
+                                name,
+                                event.target.value,
                               )
                             }
                           />
-                          {item}
+                          {option}
                         </label>
-                      ),
-                    )}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ))}
 
-                {/* Electronic Transaction Statement */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    I/We request you to send Electronic Transaction-cum-Holding
-                    Statement to the email ID.
-                    {standingErrors.electronicTransactionStatement && (
-                      <small className='standing-error'>
-                        {standingErrors.electronicTransactionStatement}
-                      </small>
-                    )}
+                {standingCompleted && (
+                  <div className="standing-success-message" role="status">
+                    Standing instructions saved successfully.
                   </div>
-
-                  <div className='standing-options'>
-                    <label>
-                      <input
-                        type='radio'
-                        name='electronicTransactionStatement'
-                        checked={
-                          standingInstructions.electronicTransactionStatement ===
-                          "Yes"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "electronicTransactionStatement",
-                            "Yes",
-                          )
-                        }
-                      />
-                      Yes
-                    </label>
-
-                    <label>
-                      <input
-                        type='radio'
-                        name='electronicTransactionStatement'
-                        checked={
-                          standingInstructions.electronicTransactionStatement ===
-                          "No"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "electronicTransactionStatement",
-                            "No",
-                          )
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                {/* Share Email With RTA */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    I/We would like to share the email ID with RTA.
-                    {standingErrors.shareEmailWithRta && (
-                      <small className='standing-error'>
-                        {standingErrors.shareEmailWithRta}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className='standing-options'>
-                    <label>
-                      <input
-                        type='radio'
-                        name='shareEmailWithRta'
-                        checked={
-                          standingInstructions.shareEmailWithRta === "Yes"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "shareEmailWithRta",
-                            "Yes",
-                          )
-                        }
-                      />
-                      Yes
-                    </label>
-
-                    <label>
-                      <input
-                        type='radio'
-                        name='shareEmailWithRta'
-                        checked={
-                          standingInstructions.shareEmailWithRta === "No"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "shareEmailWithRta",
-                            "No",
-                          )
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                {/* Annual Report */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    I/We would like to receive the Annual Report.
-                    {standingErrors.annualReport && (
-                      <small className='standing-error'>
-                        {standingErrors.annualReport}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className='standing-options standing-options-grid'>
-                    {[
-                      "Physical",
-                      "Electronic",
-                      "Both Physical and Electronic",
-                    ].map((item) => (
-                      <label key={item}>
-                        <input
-                          type='radio'
-                          name='annualReport'
-                          checked={standingInstructions.annualReport === item}
-                          onChange={() =>
-                            handleStandingInstructionChange(
-                              "annualReport",
-                              item,
-                            )
-                          }
-                        />
-                        {item}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Dividend ECS */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    I/We wish to receive dividend/interest directly into my/our
-                    account as given below through ECS.
-                    {standingErrors.dividendInterestEcs && (
-                      <small className='standing-error'>
-                        {standingErrors.dividendInterestEcs}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className='standing-options'>
-                    <label>
-                      <input
-                        type='radio'
-                        name='dividendInterestEcs'
-                        checked={
-                          standingInstructions.dividendInterestEcs === "Yes"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "dividendInterestEcs",
-                            "Yes",
-                          )
-                        }
-                      />
-                      Yes
-                    </label>
-
-                    <label>
-                      <input
-                        type='radio'
-                        name='dividendInterestEcs'
-                        checked={
-                          standingInstructions.dividendInterestEcs === "No"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "dividendInterestEcs",
-                            "No",
-                          )
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                {/* Contract Note */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    Whether you wish to receive contract note through.
-                    {standingErrors.contractNote && (
-                      <small className='standing-error'>
-                        {standingErrors.contractNote}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className='standing-options'>
-                    {["Physical", "Electronic"].map((item) => (
-                      <label key={item}>
-                        <input
-                          type='radio'
-                          name='contractNote'
-                          checked={standingInstructions.contractNote === item}
-                          onChange={() =>
-                            handleStandingInstructionChange(
-                              "contractNote",
-                              item,
-                            )
-                          }
-                        />
-                        {item}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* TRUST Facility */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    I/We wish to avail the TRUST facility using the Mobile
-                    number registered for SMS Alert Facility.
-                    {standingErrors.trustFacility && (
-                      <small className='standing-error'>
-                        {standingErrors.trustFacility}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className='standing-options'>
-                    <label>
-                      <input
-                        type='radio'
-                        name='trustFacility'
-                        checked={standingInstructions.trustFacility === "Yes"}
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "trustFacility",
-                            "Yes",
-                          )
-                        }
-                      />
-                      Yes
-                    </label>
-
-                    <label>
-                      <input
-                        type='radio'
-                        name='trustFacility'
-                        checked={standingInstructions.trustFacility === "No"}
-                        onChange={() =>
-                          handleStandingInstructionChange("trustFacility", "No")
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                {/* DIS */}
-                <div className='standing-row'>
-                  <div className='standing-question'>
-                    Whether you wish to receive DIS at the time of account
-                    opening.
-                    {standingErrors.disAtAccountOpening && (
-                      <small className='standing-error'>
-                        {standingErrors.disAtAccountOpening}
-                      </small>
-                    )}
-                  </div>
-
-                  <div className='standing-options'>
-                    <label>
-                      <input
-                        type='radio'
-                        name='disAtAccountOpening'
-                        checked={
-                          standingInstructions.disAtAccountOpening === "Yes"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "disAtAccountOpening",
-                            "Yes",
-                          )
-                        }
-                      />
-                      Yes
-                    </label>
-
-                    <label>
-                      <input
-                        type='radio'
-                        name='disAtAccountOpening'
-                        checked={
-                          standingInstructions.disAtAccountOpening === "No"
-                        }
-                        onChange={() =>
-                          handleStandingInstructionChange(
-                            "disAtAccountOpening",
-                            "No",
-                          )
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className='standing-popup-footer'>
@@ -1506,14 +1246,17 @@ const PersonalDetails = () => {
                 </button>
 
                 <button
-                  type='button'
-                  className='standing-clear-btn'
-                  onClick={() => {
-                    setStandingInstructions(EMPTY_STANDING_INSTRUCTIONS);
-                    setStandingErrors({});
-                    setStandingCompleted(false);
-                    setMainFormError("");
-                  }}
+                  type="button"
+                  className="standing-reset-btn"
+                  onClick={resetToPrefilledValues}
+                >
+                  Reset to Prefilled
+                </button>
+
+                <button
+                  type="button"
+                  className="standing-clear-btn"
+                  onClick={clearAllSelections}
                 >
                   Clear
                 </button>
