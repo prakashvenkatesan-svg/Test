@@ -210,7 +210,7 @@ const Emailregistration = () => {
             </div>
 
             {/* TERMS */}
-            <div className='d-flex checkbox-content' style={{ position: 'relative' }}>
+            <div className='d-flex checkbox-content'>
               <input
                 type='checkbox'
                 id='terms'
@@ -220,47 +220,26 @@ const Emailregistration = () => {
                 onChange={handleChange}
               />
 
-              <div className='terms-wrapper' style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-                <label htmlFor='terms' style={{ margin: 0, paddingRight: '4px' }}>
-                  Accept all
+              <div className='terms-wrapper'>
+                <label htmlFor='terms'>
+                  Accept all{" "}
+                  <span className='terms-text'>Terms & Conditions*</span>
                 </label>
-                <span 
-                  className='terms-text'
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowModal(true);
-                  }}
-                  style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
-                >
-                  Terms & Conditions*
-                </span>
 
-                {showModal && (
-                  <div className="terms-popup" style={{
-                      display: 'block',
-                      position: 'absolute', top: '100%', left: '0', 
-                      background: '#fff', border: '1px solid #ccc', padding: '15px', 
-                      borderRadius: '5px', zIndex: 10, marginTop: '5px', width: '100%',
-                      boxShadow: '0px 4px 6px rgba(0,0,0,0.1)'
-                    }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                       <strong style={{ fontSize: '14px', color: '#000' }}>Terms & Conditions</strong>
-                       <span style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }} onClick={() => setShowModal(false)}>✕</span>
-                    </div>
-                    <p style={{ fontSize: '13px', lineHeight: '1.5', margin: 0, textAlign: 'left' }}>
-                      I hereby give my consent to undertake the online KYC process for
-                      opening a Trading/Demat account with Aionion Capital Market Services
-                      Private Limited. I am voluntarily providing this email ID and mobile
-                      number to AIONION CAPITAL MARKET SERVICES PRIVATE LIMITED for
-                      communication purposes. I confirm that the provided email ID and
-                      mobile number belong solely to me. I request all formal, informal, and
-                      promotional communications to be sent to the provided email ID and
-                      mobile number. Additionally, I voluntarily authorize AIONION CAPITAL
-                      MARKET SERVICES PRIVATE LIMITED to send all trading and
-                      transaction-related statements to this mobile number.
-                    </p>
-                  </div>
-                )}
+                <div className='terms-popup'>
+                  <p>
+                    I hereby give my consent to undertake the online KYC process for
+                    opening a Trading/Demat account with Aionion Capital Market Services
+                    Private Limited. I am voluntarily providing this email ID and mobile
+                    number to AIONION CAPITAL MARKET SERVICES PRIVATE LIMITED for
+                    communication purposes. I confirm that the provided email ID and
+                    mobile number belong solely to me. I request all formal, informal, and
+                    promotional communications to be sent to the provided email ID and
+                    mobile number. Additionally, I voluntarily authorize AIONION CAPITAL
+                    MARKET SERVICES PRIVATE LIMITED to send all trading and
+                    transaction-related statements to this mobile number.
+                  </p>
+                </div>
               </div>
             </div>
 
