@@ -180,6 +180,29 @@ const verifyPan = async (req, res) => {
     console.log("CLEAN PAN:", cleanPan);
     console.log("FORMATTED DOB:", formattedDob);
 
+    /* CHECK DUPLICATE COMPLETED PAN */
+    const completedPanCheck = await pool.query(
+      `
+      SELECT pd.id 
+      FROM public.pan_details pd
+      INNER JOIN public.kyc_applications ka ON ka.id = pd.application_id
+      WHERE pd.pan_number = $1
+        AND (ka.kyc_status = 'completed' OR ka.is_completed = true)
+        AND ka.esign_status = 'completed'
+        AND ka.esign_signed_pdf_path IS NOT NULL
+        AND pd.application_id != $2
+      LIMIT 1
+      `,
+      [cleanPan, effectiveApplicationId]
+    );
+
+    if (completedPanCheck.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "This PAN is already linked to a completed KYC application. A duplicate KYC application is not allowed.",
+      });
+    }
+
     /* SAVE PAN + DOB IN DB */
     await insertPanVerification(effectiveApplicationId, cleanPan, formattedDob);
     console.log("PAN + DOB SAVED");

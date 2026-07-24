@@ -190,6 +190,28 @@ const createNumberRegistration = async (req, res) => {
     await client.query("BEGIN");
     console.log("STEP 2: transaction started");
 
+    const completedCheckResult = await client.query(
+      `
+      SELECT ka.id 
+      FROM public.kyc_applications ka
+      INNER JOIN public.contact_details cd ON ka.id = cd.application_id
+      WHERE cd.mobile_number = $1
+        AND (ka.kyc_status = 'completed' OR ka.is_completed = true)
+        AND ka.esign_status = 'completed'
+        AND ka.esign_signed_pdf_path IS NOT NULL
+      LIMIT 1
+      `,
+      [mobile_number]
+    );
+
+    if (completedCheckResult.rows.length > 0) {
+      await safeRollback(client);
+      return res.status(400).json({
+        success: false,
+        message: "A completed KYC application already exists with this mobile number. A new KYC journey cannot be initiated.",
+      });
+    }
+
     const existingContactResult = await client.query(
       `
       SELECT
@@ -889,6 +911,29 @@ const createEmailRegistration = async (req, res) => {
     }
 
     await client.query("BEGIN");
+
+    const completedEmailCheck = await client.query(
+      `
+      SELECT ka.id 
+      FROM public.kyc_applications ka
+      INNER JOIN public.contact_details cd ON ka.id = cd.application_id
+      WHERE cd.email = $1
+        AND (ka.kyc_status = 'completed' OR ka.is_completed = true)
+        AND ka.esign_status = 'completed'
+        AND ka.esign_signed_pdf_path IS NOT NULL
+        AND ka.id != $2
+      LIMIT 1
+      `,
+      [email, application_id]
+    );
+
+    if (completedEmailCheck.rows.length > 0) {
+      await safeRollback(client);
+      return res.status(400).json({
+        success: false,
+        message: "A completed KYC application already exists with this email ID. Please use a different email address.",
+      });
+    }
 
     const contactResult = await client.query(
       `

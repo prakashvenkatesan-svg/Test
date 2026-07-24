@@ -196,6 +196,41 @@ const startEsign = async (req, res) => {
       });
     }
 
+    const duplicateCheck = await pool.query(
+      `
+      WITH current_app AS (
+        SELECT cd.mobile_number, cd.email, pd.pan_number
+        FROM public.kyc_applications ka
+        LEFT JOIN public.contact_details cd ON ka.id = cd.application_id
+        LEFT JOIN public.pan_details pd ON ka.id = pd.application_id
+        WHERE ka.id = $1
+      )
+      SELECT ka.id
+      FROM public.kyc_applications ka
+      LEFT JOIN public.contact_details cd ON ka.id = cd.application_id
+      LEFT JOIN public.pan_details pd ON ka.id = pd.application_id
+      CROSS JOIN current_app
+      WHERE (ka.kyc_status = 'completed' OR ka.is_completed = true)
+        AND ka.esign_status = 'completed'
+        AND ka.esign_signed_pdf_path IS NOT NULL
+        AND ka.id != $1
+        AND (
+          (cd.mobile_number IS NOT NULL AND cd.mobile_number = current_app.mobile_number) OR
+          (cd.email IS NOT NULL AND cd.email = current_app.email) OR
+          (pd.pan_number IS NOT NULL AND pd.pan_number = current_app.pan_number)
+        )
+      LIMIT 1
+      `,
+      [applicationId]
+    );
+
+    if (duplicateCheck.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "A duplicate completed KYC application was detected. You cannot proceed with eSign.",
+      });
+    }
+
     const result = await startEsignForApplication(application, { lat, lng });
 
     const savedRecord = await updateEsignRecord(applicationId, {
