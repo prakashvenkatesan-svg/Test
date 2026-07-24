@@ -897,8 +897,8 @@ const PersonalDetails = () => {
                       <option value='' disabled hidden>
                         Select Running Account Authorization
                       </option>
-                      <option value='Yes'>Yes</option>
-                      <option value='No'>No</option>
+                      <option value='Monthly'>Monthly</option>
+                      <option value='Quarterly'>Quarterly</option>
                     </select>
                     <label>
                       Running Account Authorization <span>*</span>
@@ -997,11 +997,7 @@ const PersonalDetails = () => {
             </p>
           </button>
 
-          <p className='mt-3'>
-            <span className='required'>*</span> Above data may be shared with
-            other Aionion group entities for providing other financial services,
-            in case need be.
-          </p>
+
 
           <div className='d-flex gap-3'>
             <input

@@ -243,9 +243,11 @@ const removeOldSignatureFile = async (signatureFilePath) => {
 };
 
 const uploadSignature = async (req, res) => {
+  const client = await pool.connect();
   let newlyCreatedFilePath = "";
 
   try {
+    await client.query("BEGIN");
     const {
       application_id,
       signature_method,
@@ -253,6 +255,7 @@ const uploadSignature = async (req, res) => {
     } = req.body;
 
     if (!application_id) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "application_id is required.",
@@ -260,6 +263,7 @@ const uploadSignature = async (req, res) => {
     }
 
     if (!allowedMethods.includes(signature_method)) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Invalid signature method.",
@@ -285,6 +289,7 @@ const uploadSignature = async (req, res) => {
     // Signature Pad
     if (signature_method === "signature_pad") {
       if (!signature_base64) {
+        await client.query("ROLLBACK");
         return res.status(400).json({
           success: false,
           message: "Signature pad image is required.",
@@ -296,6 +301,7 @@ const uploadSignature = async (req, res) => {
       );
 
       if (!base64Match) {
+        await client.query("ROLLBACK");
         return res.status(400).json({
           success: false,
           message: "Invalid signature pad image format.",
@@ -313,6 +319,7 @@ const uploadSignature = async (req, res) => {
     } else {
       // Upload Signature or Capture Photo
       if (!req.file) {
+        await client.query("ROLLBACK");
         return res.status(400).json({
           success: false,
           message: "Signature file is required.",
@@ -325,6 +332,7 @@ const uploadSignature = async (req, res) => {
           : allowedUploadMimeTypes;
 
       if (!allowedMimeTypes.includes(req.file.mimetype)) {
+        await client.query("ROLLBACK");
         return res.status(400).json({
           success: false,
           message:
@@ -345,6 +353,7 @@ const uploadSignature = async (req, res) => {
     }
 
     if (!fileBuffer || !fileBuffer.length) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Signature file is empty.",
@@ -370,7 +379,7 @@ const uploadSignature = async (req, res) => {
 
     // Find existing signature path before updating it.
     const existingSignatureResult = existingPathColumn
-      ? await pool.query(
+      ? await client.query(
           `
             SELECT ${existingPathColumn} AS signature_path
             FROM public.signature_uploads
@@ -397,7 +406,7 @@ const uploadSignature = async (req, res) => {
 
     // Update existing row first.
     const updateQuery = buildUpdateQuery(mutationValues);
-    const updateResult = await pool.query(updateQuery.text, updateQuery.values);
+    const updateResult = await client.query(updateQuery.text, updateQuery.values);
 
     let savedSignature;
 
@@ -407,7 +416,7 @@ const uploadSignature = async (req, res) => {
         mutationValues,
         signatureUploadColumns,
       );
-      const insertResult = await pool.query(insertQuery.text, insertQuery.values);
+      const insertResult = await client.query(insertQuery.text, insertQuery.values);
 
       savedSignature = insertResult.rows[0];
     } else {
@@ -421,6 +430,17 @@ const uploadSignature = async (req, res) => {
     ) {
       await removeOldSignatureFile(oldSignatureFilePath);
     }
+
+    await client.query(
+      `
+      UPDATE public.kyc_applications
+      SET current_step = 'scheme_details', updated_at = NOW()
+      WHERE id = $1
+      `,
+      [application_id]
+    );
+
+    await client.query("COMMIT");
 
     return res.status(200).json({
       success: true,
@@ -436,6 +456,7 @@ const uploadSignature = async (req, res) => {
       },
     });
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.error("Signature upload error:", error);
 
     // If DB fails after new file is created, remove that newly created file.
@@ -451,6 +472,8 @@ const uploadSignature = async (req, res) => {
       success: false,
       message: "Failed to upload signature.",
     });
+  } finally {
+    if (client) client.release();
   }
 };
 

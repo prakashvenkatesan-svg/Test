@@ -1,3 +1,4 @@
+const db = require("../config/db");
 const {
   upsertPersonalDetails,
   getApplicationById,
@@ -128,7 +129,9 @@ const validateStandingInstructions = (standingInstructions) => {
   POST /api/personal-details/save
 */
 const savePersonalDetails = async (req, res) => {
+  const client = await db.connect();
   try {
+    await client.query("BEGIN");
     const {
       application_id,
 
@@ -162,6 +165,7 @@ const savePersonalDetails = async (req, res) => {
       !Number.isInteger(parsedApplicationId) ||
       parsedApplicationId <= 0
     ) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "A valid application_id is required.",
@@ -177,6 +181,7 @@ const savePersonalDetails = async (req, res) => {
       !cleanValue(gender) ||
       !cleanValue(occupation)
     ) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message:
@@ -185,6 +190,7 @@ const savePersonalDetails = async (req, res) => {
     }
 
     if (hasNumericCharacters(motherName)) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Mother name cannot contain numbers.",
@@ -192,6 +198,7 @@ const savePersonalDetails = async (req, res) => {
     }
 
     if (incomeDeclarationAccepted !== true) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Please accept the income declaration.",
@@ -199,6 +206,7 @@ const savePersonalDetails = async (req, res) => {
     }
 
     if (rightsAccepted !== true) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Please accept Rights and Obligations.",
@@ -209,6 +217,7 @@ const savePersonalDetails = async (req, res) => {
       Standing Instruction popup must have been submitted.
     */
     if (standing_instruction_completed !== true) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message:
@@ -222,6 +231,7 @@ const savePersonalDetails = async (req, res) => {
     const standingErrors = validateStandingInstructions(standingInstructions);
 
     if (Object.keys(standingErrors).length > 0) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Please complete all mandatory Standing Instructions.",
@@ -235,6 +245,7 @@ const savePersonalDetails = async (req, res) => {
     const application = await getApplicationById(parsedApplicationId);
 
     if (!application) {
+      await client.query("ROLLBACK");
       return res.status(404).json({
         success: false,
         message: "Application not found.",
@@ -302,7 +313,18 @@ const savePersonalDetails = async (req, res) => {
       ),
 
       standing_instruction_completed: true,
-    });
+    }, client);
+
+    await client.query(
+      `
+      UPDATE public.kyc_applications
+      SET current_step = 'nominee_details', updated_at = NOW()
+      WHERE id = $1
+      `,
+      [parsedApplicationId]
+    );
+
+    await client.query("COMMIT");
 
     return res.status(200).json({
       success: true,
@@ -310,6 +332,7 @@ const savePersonalDetails = async (req, res) => {
       data: savedData,
     });
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.error("Personal details save error:", error);
 
     const lowerCaseErrorMessage = String(error?.message || "").toLowerCase();
@@ -325,6 +348,8 @@ const savePersonalDetails = async (req, res) => {
         : "Internal server error.",
       error: error.message,
     });
+  } finally {
+    if (client) client.release();
   }
 };
 

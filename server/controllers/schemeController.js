@@ -26,6 +26,7 @@ const saveSchemeSelection = async (req, res) => {
       UPDATE public.kyc_applications
       SET
         selected_scheme = $2,
+        current_step = 'payment_summary',
         updated_at = NOW()
       WHERE id = $1
       RETURNING id, application_number, selected_scheme

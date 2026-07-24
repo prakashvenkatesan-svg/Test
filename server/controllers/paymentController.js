@@ -110,27 +110,48 @@ const generateHash = async (req, res) => {
 };
 
 const paymentSuccess = async (req, res) => {
+  const client = await pool.connect();
   try {
+    await client.query("BEGIN");
     const { txnid, amount, mode, status, mihpayid } = req.body;
 
     // UPDATE PAYMENT
-    await pool.query(
+    const paymentResult = await client.query(
       `
       UPDATE payments_details
       SET
         payment_status = $1,
         payment_method = $2
       WHERE txnid = $3
+      RETURNING application_id
       `,
       [status, mode, txnid],
     );
 
+    if (paymentResult.rows.length > 0) {
+      const applicationId = paymentResult.rows[0].application_id;
+      
+      await client.query(
+        `
+        UPDATE public.kyc_applications
+        SET current_step = 'esign', updated_at = NOW()
+        WHERE id = $1
+        `,
+        [applicationId]
+      );
+    }
+
+    await client.query("COMMIT");
+
     const frontendBase = resolveFrontendBaseUrl();
     return res.redirect(`${frontendBase}/payment-completed`);
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.log(error);
 
     res.send("Payment Update Failed");
+  } finally {
+    if (client) client.release();
   }
 };
 

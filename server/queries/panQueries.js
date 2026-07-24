@@ -4,8 +4,8 @@ const {
 } = require("../utils/normalizeDateForPostgres");
 
 /* INSERT PAN + DOB */
-const insertPanVerification = async (application_id, pan_number, dob) => {
-  return await pool.query(
+const insertPanVerification = async (application_id, pan_number, dob, client = pool) => {
+  return await client.query(
     `
     INSERT INTO public.identity_verifications
     (
@@ -28,7 +28,7 @@ const insertPanVerification = async (application_id, pan_number, dob) => {
   );
 };
 
-const insertKraDetails = async (data) => {
+const insertKraDetails = async (data, client = pool) => {
   const query = `
     INSERT INTO public.identity_verifications
     (
@@ -103,10 +103,10 @@ const insertKraDetails = async (data) => {
     data.provider_dob,
   ];
 
-  return await pool.query(query, values);
+  return await client.query(query, values);
 };
 
-const updateKraDetails = async (data) => {
+const updateKraDetails = async (data, client = pool) => {
   const query = `
     UPDATE public.identity_verifications
     SET
@@ -125,7 +125,7 @@ const updateKraDetails = async (data) => {
     RETURNING *
   `;
 
-  return await pool.query(query, [
+  return await client.query(query, [
     data.kra_email,
     data.kra_mobile,
     data.gender,
@@ -140,7 +140,7 @@ const updateKraDetails = async (data) => {
   ]);
 };
 
-const savePanVerification = async (data) => {
+const savePanVerification = async (data, client = pool) => {
   const normalizedDob = normalizeDateForPostgres(data.dob);
 
   const query = `
@@ -199,10 +199,10 @@ const savePanVerification = async (data) => {
     normalizedDob,
   ];
 
-  return await pool.query(query, values);
+  return await client.query(query, values);
 };
 
-const saveDigilockerDetails = async (data) => {
+const saveDigilockerDetails = async (data, client = pool) => {
   const query = `
     INSERT INTO public.digilocker_details
     (
@@ -287,10 +287,10 @@ const saveDigilockerDetails = async (data) => {
     data.provider_ref,
   ];
 
-  return await pool.query(query, values);
+  return await client.query(query, values);
 };
 
-const upsertDigilockerIdentityDetails = async (data) => {
+const upsertDigilockerIdentityDetails = async (data, client = pool) => {
   const normalizedProviderDob = normalizeDateForPostgres(data.dob);
 
   const query = `
@@ -368,7 +368,7 @@ const upsertDigilockerIdentityDetails = async (data) => {
     normalizedProviderDob,
   ];
 
-  return await pool.query(query, values);
+  return await client.query(query, values);
 };
 
 module.exports = {

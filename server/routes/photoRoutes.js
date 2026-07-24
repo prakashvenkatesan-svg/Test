@@ -135,29 +135,132 @@ const buildApplicantPhotoInsertQuery = (values, columns) => {
     values: params,
   };
 };
+router.post("/generate-token", async (req, res) => {
+  try {
+    const { application_id } = req.body;
+    if (!application_id) {
+      return res.status(400).json({ success: false, message: "Application ID is required" });
+    }
+    
+    const appResult = await pool.query(`SELECT current_step FROM public.kyc_applications WHERE id = $1`, [application_id]);
+    if (appResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+    if (appResult.rows[0].current_step !== 'live_photo') {
+      return res.status(400).json({ success: false, message: "Live photo step is not active" });
+    }
+
+    const crypto = require('crypto');
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    await pool.query(`
+      INSERT INTO public.otp_sessions (application_id, otp_hash, expires_at, is_used, created_at, mobile_number)
+      VALUES ($1, $2, $3, false, NOW(), 'LIVE_PHOTO')
+    `, [application_id, tokenHash, expiresAt]);
+
+    res.json({ success: true, token });
+  } catch (err) {
+    console.error("GENERATE TOKEN ERROR:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.get("/validate-token/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const crypto = require('crypto');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const otpResult = await pool.query(`
+      SELECT * FROM public.otp_sessions 
+      WHERE otp_hash = $1 AND mobile_number = 'LIVE_PHOTO' 
+      ORDER BY created_at DESC LIMIT 1
+    `, [tokenHash]);
+
+    if (otpResult.rows.length === 0) {
+      return res.status(400).json({ success: false, message: "Invalid token" });
+    }
+
+    const session = otpResult.rows[0];
+    if (session.is_used) {
+      return res.status(400).json({ success: false, message: "Token has already been used" });
+    }
+    if (new Date() > new Date(session.expires_at)) {
+      return res.status(400).json({ success: false, message: "Token has expired" });
+    }
+
+    const appResult = await pool.query(`SELECT current_step FROM public.kyc_applications WHERE id = $1`, [session.application_id]);
+    if (appResult.rows.length === 0 || appResult.rows[0].current_step !== 'live_photo') {
+      return res.status(400).json({ success: false, message: "Live photo step is not active" });
+    }
+
+    res.json({ success: true, application_id: session.application_id });
+  } catch (err) {
+    console.error("VALIDATE TOKEN ERROR:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 router.post("/upload", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const { image, application_id: applicationIdRaw } = req.body;
-    const applicationId = Number(applicationIdRaw);
+    await client.query("BEGIN");
+    const { image, application_id: applicationIdRaw, token } = req.body;
+    let applicationId = Number(applicationIdRaw);
+    let usedTokenId = null;
+
+    if (token) {
+      const crypto = require('crypto');
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const otpResult = await client.query(`
+        SELECT * FROM public.otp_sessions 
+        WHERE otp_hash = $1 AND mobile_number = 'LIVE_PHOTO' 
+        ORDER BY created_at DESC LIMIT 1
+      `, [tokenHash]);
+
+      if (otpResult.rows.length === 0) return res.status(400).json({ success: false, message: "Invalid token" });
+      const session = otpResult.rows[0];
+      if (session.is_used) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ success: false, message: "Token already used" });
+      }
+      if (new Date() > new Date(session.expires_at)) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ success: false, message: "Token expired" });
+      }
+      
+      const appResult = await client.query(`SELECT current_step FROM public.kyc_applications WHERE id = $1`, [session.application_id]);
+      if (appResult.rows.length === 0 || appResult.rows[0].current_step !== 'live_photo') {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ success: false, message: "Live photo step is not active" });
+      }
+
+      applicationId = session.application_id;
+      usedTokenId = session.id;
+    } else {
+      if (!Number.isInteger(applicationId) || applicationId <= 0) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          success: false,
+          message: "Valid application ID is required",
+        });
+      }
+    }
 
     if (!image || typeof image !== "string") {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "No image provided",
       });
     }
 
-    if (!Number.isInteger(applicationId) || applicationId <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Valid application ID is required",
-      });
-    }
-
     const match = image.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
 
     if (!match) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Invalid image format",
@@ -169,6 +272,7 @@ router.post("/upload", async (req, res) => {
     const extension = MIME_EXTENSION_MAP[mimeType];
 
     if (!extension) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Unsupported image type",
@@ -176,6 +280,7 @@ router.post("/upload", async (req, res) => {
     }
 
     if (!base64Data || !base64Data.trim()) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Captured image is empty",
@@ -185,6 +290,7 @@ router.post("/upload", async (req, res) => {
     const imageBuffer = Buffer.from(base64Data, "base64");
 
     if (!imageBuffer.length) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Captured image is empty",
@@ -221,15 +327,30 @@ router.post("/upload", async (req, res) => {
     });
 
     const updateQuery = buildApplicantPhotoUpdateQuery(mutationValues);
-    const updateResult = await pool.query(updateQuery.text, updateQuery.values);
+    const updateResult = await client.query(updateQuery.text, updateQuery.values);
 
     if (updateResult.rows.length === 0) {
       const insertQuery = buildApplicantPhotoInsertQuery(
         mutationValues,
         applicantPhotoColumns,
       );
-      await pool.query(insertQuery.text, insertQuery.values);
+      await client.query(insertQuery.text, insertQuery.values);
     }
+
+    if (usedTokenId) {
+      await client.query(`UPDATE public.otp_sessions SET is_used = true WHERE id = $1`, [usedTokenId]);
+    }
+
+    await client.query(
+      `
+      UPDATE public.kyc_applications
+      SET current_step = 'signature_upload', updated_at = NOW()
+      WHERE id = $1
+      `,
+      [applicationId]
+    );
+
+    await client.query("COMMIT");
 
     res.json({
       success: true,
@@ -237,11 +358,14 @@ router.post("/upload", async (req, res) => {
       path: relativeFilePath,
     });
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.error("PHOTO UPLOAD ERROR:", error.message);
     res.status(500).json({
       success: false,
       message: "Upload failed",
     });
+  } finally {
+    if (client) client.release();
   }
 });
 

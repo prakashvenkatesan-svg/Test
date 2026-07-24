@@ -1,18 +1,18 @@
 const db = require("../config/db");
 
-const getApplicationById = async (application_id) => {
+const getApplicationById = async (application_id, client = db) => {
   const query = `SELECT * FROM kyc_applications WHERE id = $1 LIMIT 1`;
-  const result = await db.query(query, [application_id]);
+  const result = await client.query(query, [application_id]);
   return result.rows[0];
 };
 
-const getNomineeCount = async (application_id) => {
+const getNomineeCount = async (application_id, client = db) => {
   const query = `
     SELECT COUNT(*)::int AS total
     FROM nominee_details
     WHERE application_id = $1
   `;
-  const result = await db.query(query, [application_id]);
+  const result = await client.query(query, [application_id]);
   return result.rows[0].total;
 };
 
@@ -29,7 +29,7 @@ const createNominee = async ({
   pan,
   nominee_address,
   same_address,
-}) => {
+}, client = db) => {
   const query = `
     INSERT INTO nominee_details (
       application_id,
@@ -68,22 +68,22 @@ const createNominee = async ({
     same_address,
   ];
 
-  const result = await db.query(query, values);
+  const result = await client.query(query, values);
   return result.rows[0];
 };
 
-const getNomineesByApplicationId = async (application_id) => {
+const getNomineesByApplicationId = async (application_id, client = db) => {
   const query = `
     SELECT *
     FROM nominee_details
     WHERE application_id = $1
     ORDER BY id ASC
   `;
-  const result = await db.query(query, [application_id]);
+  const result = await client.query(query, [application_id]);
   return result.rows;
 };
 
-const updateNomineeAllocation = async (nominee_id, allocation_percentage) => {
+const updateNomineeAllocation = async (nominee_id, allocation_percentage, client = db) => {
   const query = `
     UPDATE nominee_details
     SET allocation_percentage = $2,
@@ -91,13 +91,13 @@ const updateNomineeAllocation = async (nominee_id, allocation_percentage) => {
     WHERE id = $1
     RETURNING *;
   `;
-  const result = await db.query(query, [nominee_id, allocation_percentage]);
+  const result = await client.query(query, [nominee_id, allocation_percentage]);
   return result.rows[0];
 };
 
-const deleteNomineeById = async (nominee_id) => {
+const deleteNomineeById = async (nominee_id, client = db) => {
   const query = `DELETE FROM nominee_details WHERE id = $1 RETURNING *`;
-  const result = await db.query(query, [nominee_id]);
+  const result = await client.query(query, [nominee_id]);
   return result.rows[0];
 };
 

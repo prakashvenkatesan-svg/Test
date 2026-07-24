@@ -32,7 +32,7 @@ const upsertPersonalDetails = async ({
   trust_facility_instruction,
   dis_at_account_opening,
   standing_instruction_completed,
-}) => {
+}, client = db) => {
   const query = `
     INSERT INTO personal_details (
       application_id,
@@ -169,7 +169,7 @@ const upsertPersonalDetails = async ({
     standing_instruction_completed,
   ];
 
-  const result = await db.query(query, values);
+  const result = await client.query(query, values);
 
   return result.rows[0];
 };

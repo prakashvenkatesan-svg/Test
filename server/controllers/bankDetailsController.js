@@ -92,7 +92,9 @@ const getBankByIFSC = async (req, res) => {
 };
 
 const saveBankDetails = async (req, res) => {
+  const client = await pool.connect();
   try {
+    await client.query("BEGIN");
     let {
       application_id,
       accountNumber,
@@ -108,6 +110,7 @@ const saveBankDetails = async (req, res) => {
       !ifscCode ||
       !accountType
     ) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "All bank fields are required",
@@ -115,6 +118,7 @@ const saveBankDetails = async (req, res) => {
     }
 
     if (accountNumber !== confirmAccountNumber) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Account numbers do not match",
@@ -125,6 +129,7 @@ const saveBankDetails = async (req, res) => {
     const bankData = await fetchBankMasterDetails(ifscCode);
 
     if (!bankData) {
+      await client.query("ROLLBACK");
       return res.status(404).json({
         success: false,
         message: "Invalid IFSC Code",
@@ -144,7 +149,18 @@ const saveBankDetails = async (req, res) => {
       bank_response: {
         micr_code: bankData.micr_code || "",
       },
-    });
+    }, client);
+
+    await client.query(
+      `
+      UPDATE public.kyc_applications
+      SET current_step = 'personal_details', updated_at = NOW()
+      WHERE id = $1
+      `,
+      [application_id]
+    );
+
+    await client.query("COMMIT");
 
     return res.status(200).json({
       success: true,
@@ -159,12 +175,15 @@ const saveBankDetails = async (req, res) => {
       },
     });
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.error("SAVE BANK DETAILS ERROR:", error);
 
     return res.status(500).json({
       success: false,
       message: "Internal server error",
     });
+  } finally {
+    if (client) client.release();
   }
 };
 

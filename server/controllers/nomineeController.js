@@ -1,3 +1,4 @@
+const db = require("../config/db");
 const {
   getApplicationById,
   getNomineeCount,
@@ -122,7 +123,9 @@ const validateNominee = (nominee, nomineeNumber) => {
   }
 */
 const saveNominee = async (req, res) => {
+  const client = await db.connect();
   try {
+    await client.query("BEGIN");
     const {
       application_id,
       nominees,
@@ -130,15 +133,17 @@ const saveNominee = async (req, res) => {
     } = req.body;
 
     if (!application_id) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "application_id is required",
       });
     }
 
-    const application = await getApplicationById(application_id);
+    const application = await getApplicationById(application_id, client);
 
     if (!application) {
+      await client.query("ROLLBACK");
       return res.status(404).json({
         success: false,
         message: "Application not found",
@@ -151,6 +156,7 @@ const saveNominee = async (req, res) => {
       : [req.body];
 
     if (!nomineeList.length) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "At least one nominee is required",
@@ -158,6 +164,7 @@ const saveNominee = async (req, res) => {
     }
 
     if (nomineeList.length > MAX_NOMINEES) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: `Maximum ${MAX_NOMINEES} nominees allowed`,
@@ -166,15 +173,17 @@ const saveNominee = async (req, res) => {
 
     // Rights acceptance is required only for the new multi nominee flow.
     if (Array.isArray(nominees) && !rightsAccepted) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Please accept rights and obligations",
       });
     }
 
-    const existingNomineeCount = await getNomineeCount(application_id);
+    const existingNomineeCount = await getNomineeCount(application_id, client);
 
     if (existingNomineeCount + nomineeList.length > MAX_NOMINEES) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: `Maximum ${MAX_NOMINEES} nominees allowed`,
@@ -190,6 +199,7 @@ const saveNominee = async (req, res) => {
       const validationMessage = validateNominee(nominee, index + 1);
 
       if (validationMessage) {
+        await client.query("ROLLBACK");
         return res.status(400).json({
           success: false,
           message: validationMessage,
@@ -201,6 +211,7 @@ const saveNominee = async (req, res) => {
 
     // For multi nominee flow, total must always be 100%.
     if (Array.isArray(nominees) && totalAllocation !== 100) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: `Total nominee allocation must be exactly 100%. Current total: ${totalAllocation}%`,
@@ -244,7 +255,7 @@ const saveNominee = async (req, res) => {
         pan,
         nominee_address: nomineeAddress,
         same_address: Boolean(nominee.sameAddress),
-      });
+      }, client);
 
       /*
         createNominee query must return the inserted row
@@ -259,13 +270,24 @@ const saveNominee = async (req, res) => {
       }
 
       // Save percentage allocation after nominee row is created.
-      await updateNomineeAllocation(nomineeId, allocation);
+      await updateNomineeAllocation(nomineeId, allocation, client);
 
       savedNominees.push({
         ...savedNominee,
         allocation_percentage: allocation,
       });
     }
+
+    await client.query(
+      `
+      UPDATE public.kyc_applications
+      SET current_step = 'live_photo', updated_at = NOW()
+      WHERE id = $1
+      `,
+      [application_id]
+    );
+
+    await client.query("COMMIT");
 
     return res.status(200).json({
       success: true,
@@ -274,6 +296,7 @@ const saveNominee = async (req, res) => {
       data: savedNominees,
     });
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.error("Save nominee error:", error);
 
     return res.status(500).json({
@@ -281,6 +304,8 @@ const saveNominee = async (req, res) => {
       message: "Internal server error",
       error: error.message,
     });
+  } finally {
+    if (client) client.release();
   }
 };
 
@@ -313,7 +338,9 @@ const getNominees = async (req, res) => {
 };
 
 const saveAllocation = async (req, res) => {
+  const client = await db.connect();
   try {
+    await client.query("BEGIN");
     const { application_id, allocations } = req.body;
 
     if (
@@ -321,15 +348,17 @@ const saveAllocation = async (req, res) => {
       !Array.isArray(allocations) ||
       allocations.length === 0
     ) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "application_id and allocations are required",
       });
     }
 
-    const nominees = await getNomineesByApplicationId(application_id);
+    const nominees = await getNomineesByApplicationId(application_id, client);
 
     if (!nominees.length) {
+      await client.query("ROLLBACK");
       return res.status(404).json({
         success: false,
         message: "No nominees found for this application",
@@ -352,6 +381,7 @@ const saveAllocation = async (req, res) => {
         allocation <= 0 ||
         allocation > 100
       ) {
+        await client.query("ROLLBACK");
         return res.status(400).json({
           success: false,
           message: "Invalid nominee allocation data",
@@ -362,6 +392,7 @@ const saveAllocation = async (req, res) => {
     }
 
     if (totalAllocation !== 100) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Total allocation percentage must be exactly 100",
@@ -372,10 +403,22 @@ const saveAllocation = async (req, res) => {
       await updateNomineeAllocation(
         item.nominee_id,
         Number(item.allocation_percentage),
+        client
       );
     }
 
-    const updatedNominees = await getNomineesByApplicationId(application_id);
+    const updatedNominees = await getNomineesByApplicationId(application_id, client);
+
+    await client.query(
+      `
+      UPDATE public.kyc_applications
+      SET current_step = 'live_photo', updated_at = NOW()
+      WHERE id = $1
+      `,
+      [application_id]
+    );
+
+    await client.query("COMMIT");
 
     return res.status(200).json({
       success: true,
@@ -383,6 +426,7 @@ const saveAllocation = async (req, res) => {
       data: updatedNominees,
     });
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.error("Save allocation error:", error);
 
     return res.status(500).json({
@@ -390,6 +434,8 @@ const saveAllocation = async (req, res) => {
       message: "Internal server error",
       error: error.message,
     });
+  } finally {
+    if (client) client.release();
   }
 };
 

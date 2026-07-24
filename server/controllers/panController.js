@@ -385,7 +385,9 @@ const verifyPan = async (req, res) => {
 };
 
 const saveKraDetails = async (req, res) => {
+  const client = await pool.connect();
   try {
+    await client.query("BEGIN");
     console.log("SAVE KRA BODY:", req.body);
 
     const {
@@ -411,6 +413,7 @@ const saveKraDetails = async (req, res) => {
     // =========================
 
     if (!application_id) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         success: false,
         message: "Application ID is required",
@@ -421,7 +424,7 @@ const saveKraDetails = async (req, res) => {
     // CHECK EXISTING RECORD
     // =========================
 
-    const existingRecord = await pool.query(
+    const existingRecord = await client.query(
       `
       SELECT id
       FROM public.identity_verifications
@@ -435,7 +438,7 @@ const saveKraDetails = async (req, res) => {
     // =========================
 
     if (existingRecord.rows.length > 0) {
-      await pool.query(
+      await client.query(
         `
         UPDATE public.identity_verifications
         SET
@@ -479,7 +482,7 @@ const saveKraDetails = async (req, res) => {
       // INSERT NEW RECORD
       // =========================
 
-      await pool.query(
+      await client.query(
         `
         INSERT INTO public.identity_verifications
         (
@@ -494,7 +497,7 @@ const saveKraDetails = async (req, res) => {
           address_2,
           state,
           pincode,
-          normalizedAadhaarNumber,
+          aadhaar_number,
           provider,
           provider_ref,
           provider_dob,
@@ -519,12 +522,24 @@ const saveKraDetails = async (req, res) => {
           address_2,
           state,
           pincode,
-          aadhaar_number,
+          normalizedAadhaarNumber,
+          kra_name,
           kra_status,
           dob,
         ],
       );
     }
+
+    await client.query(
+      `
+      UPDATE public.kyc_applications
+      SET current_step = 'bank_details', updated_at = NOW()
+      WHERE id = $1
+      `,
+      [application_id]
+    );
+
+    await client.query("COMMIT");
 
     // =========================
     // SUCCESS RESPONSE
@@ -535,6 +550,7 @@ const saveKraDetails = async (req, res) => {
       message: "KRA details stored successfully",
     });
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.log("SAVE KRA ERROR:", error);
 
     return res.status(500).json({
@@ -542,16 +558,20 @@ const saveKraDetails = async (req, res) => {
       message: "Failed to store KRA details",
       error: error.message,
     });
+  } finally {
+    if (client) client.release();
   }
 };
 
 const saveIdentityDetails = async (req, res) => {
+  const client = await pool.connect();
   try {
+    await client.query("BEGIN");
     let result;
 
     // DIGILOCKER SAVE
     if (req.body.provider === "digilocker") {
-      result = await saveDigilockerDetails(req.body);
+      result = await saveDigilockerDetails(req.body, client);
       const hasStructuredDigilockerDetails = [
         req.body.name,
         req.body.gender,
@@ -563,22 +583,34 @@ const saveIdentityDetails = async (req, res) => {
       ].some((value) => String(value || "").trim() !== "");
 
       if (hasStructuredDigilockerDetails) {
-        await upsertDigilockerIdentityDetails(req.body);
+        await upsertDigilockerIdentityDetails(req.body, client);
       }
     } else if (req.body.provider === "income_tax") {
-      result = await savePanVerification(req.body);
+      result = await savePanVerification(req.body, client);
     }
 
     // PAN SAVE
     else {
-      result = await savePanVerification(req.body);
+      result = await savePanVerification(req.body, client);
     }
+
+    await client.query(
+      `
+      UPDATE public.kyc_applications
+      SET current_step = 'bank_details', updated_at = NOW()
+      WHERE id = $1
+      `,
+      [req.body.application_id]
+    );
+
+    await client.query("COMMIT");
 
     res.status(200).json({
       success: true,
       data: result.rows[0],
     });
   } catch (error) {
+    if (client) await client.query("ROLLBACK");
     console.log(
       "SAVE IDENTITY DETAILS ERROR:",
       error.message,
@@ -589,6 +621,8 @@ const saveIdentityDetails = async (req, res) => {
       success: false,
       message: "Failed to save details",
     });
+  } finally {
+    if (client) client.release();
   }
 };
 

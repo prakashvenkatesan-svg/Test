@@ -25,8 +25,8 @@ const upsertBankDetails = async ({
   verification_status,
   bank_verified,
   bank_response,
-}) => {
-  const result = await pool.query(
+}, client = pool) => {
+  const result = await client.query(
     `
     INSERT INTO bank_details (
       application_id,

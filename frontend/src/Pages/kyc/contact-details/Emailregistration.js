@@ -220,28 +220,32 @@ const Emailregistration = () => {
                 onChange={handleChange}
               />
 
-              <div className='terms-wrapper'>
-                <label htmlFor='terms'>
-                  Accept all{" "}
-                  <span 
-                    className='terms-text'
-                    onClick={() => setShowModal(!showModal)}
-                    style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
-                  >
-                    Terms & Conditions*
-                  </span>
+              <div className='terms-wrapper' style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label htmlFor='terms' style={{ margin: 0, paddingRight: '4px' }}>
+                  Accept all
                 </label>
+                <span 
+                  className='terms-text'
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowModal(true);
+                  }}
+                  style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
+                >
+                  Terms & Conditions*
+                </span>
 
                 {showModal && (
                   <div className="terms-popup" style={{
+                      display: 'block',
                       position: 'absolute', top: '100%', left: '0', 
                       background: '#fff', border: '1px solid #ccc', padding: '15px', 
                       borderRadius: '5px', zIndex: 10, marginTop: '5px', width: '100%',
                       boxShadow: '0px 4px 6px rgba(0,0,0,0.1)'
                     }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                       <strong>Terms & Conditions</strong>
-                       <span style={{ cursor: 'pointer', fontWeight: 'bold' }} onClick={() => setShowModal(false)}>X</span>
+                       <strong style={{ fontSize: '14px', color: '#000' }}>Terms & Conditions</strong>
+                       <span style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }} onClick={() => setShowModal(false)}>✕</span>
                     </div>
                     <p style={{ fontSize: '13px', lineHeight: '1.5', margin: 0, textAlign: 'left' }}>
                       I hereby give my consent to undertake the online KYC process for

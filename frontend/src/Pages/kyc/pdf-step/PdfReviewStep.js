@@ -209,9 +209,16 @@ const PdfReviewStep = () => {
                   textAlign: "center",
                 }}
               >
-                {loading
-                  ? "Preparing PDF preview..."
-                  : "PDF preview will appear here."}
+                {loading ? (
+                  <div className="d-flex flex-column align-items-center">
+                    <div className="spinner-border text-primary mb-2" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <span>Preparing PDF preview...</span>
+                  </div>
+                ) : (
+                  "PDF preview will appear here."
+                )}
               </div>
             )}
           </div>

@@ -38,7 +38,7 @@ const SignatureVerification = () => {
       "",
   );
   const hasReturnFromEsign = searchParams.get("esign_return") === "1";
-  const isCompleted = esignStatus === "completed" && Boolean(signedPdfUrl);
+  const isCompleted = (esignStatus === "completed" || providerStatus === "sign_complete") && Boolean(signedPdfUrl);
   const isCheckingReturnedEsign = hasReturnFromEsign && !isCompleted;
   const assetBaseUrl = useMemo(
     () => String(api.defaults.baseURL || "").replace(/\/api\/?$/, ""),
@@ -519,9 +519,16 @@ const SignatureVerification = () => {
                       textAlign: "center",
                     }}
                   >
-                    {pdfLoading
-                      ? "Preparing PDF preview..."
-                      : "PDF preview will appear here."}
+                    {pdfLoading ? (
+                      <div className="d-flex flex-column align-items-center">
+                        <div className="spinner-border text-primary mb-2" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <span>Preparing PDF preview...</span>
+                      </div>
+                    ) : (
+                      "PDF preview will appear here."
+                    )}
                   </div>
                 )}
               </div>

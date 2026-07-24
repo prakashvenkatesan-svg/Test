@@ -2,10 +2,14 @@ const fs = require("fs/promises");
 
 const pool = require("../config/db");
 const { getApplicationDetailQuery } = require("../queries/adminQueries");
+const { calculateNameMatchScore } = require("../utils/fuzzyMatch");
+const { insertEsignAuditLogQuery } = require("../queries/esignAuditQueries");
 const {
   startEsignForApplication,
   fetchEsignStatus,
   downloadSignedEsignDocument,
+  getKycApplicantName,
+  getAadhaarNameFromPayload,
 } = require("../services/esignService");
 const { markStampPaperUsedAfterEsign } = require("../services/ddpiService");
 const { markAllocatedBoidUsed } = require("../services/boidAllocationService");
@@ -151,7 +155,7 @@ const ensureSignedDocumentForApplication = async (applicationId, application) =>
       statusResult.providerPayload,
     ),
     esign_signed_pdf_path: signedDocument.outputPath,
-    current_step: "esign",
+    current_step: "completed",
     kyc_status: "completed",
     is_completed: true,
     esign_signed_at: new Date(),
@@ -304,6 +308,43 @@ const getEsignStatus = async (req, res) => {
       normalizedStatus: statusResult.normalizedStatus,
       providerPayload: statusResult.providerPayload,
     });
+
+    const isAlreadyCompleted = application.esign_status === "completed";
+
+    if (statusResult.rawStatus === "sign_complete" && !isAlreadyCompleted) {
+      const kycName = getKycApplicantName(application);
+      const aadhaarName = getAadhaarNameFromPayload(statusResult.providerPayload);
+      const matchScore = calculateNameMatchScore(kycName, aadhaarName);
+
+      const isValidName = matchScore >= 70;
+      const failureReason = isValidName ? null : "Name mismatch score below 70%";
+
+      try {
+        await pool.query(insertEsignAuditLogQuery, [
+          applicationId,
+          kycName,
+          aadhaarName,
+          matchScore,
+          isValidName ? "passed" : "failed",
+          failureReason
+        ]);
+      } catch (auditError) {
+        console.error("Failed to insert eSign audit log:", auditError.message);
+      }
+
+      if (!isValidName) {
+        await updateEsignRecord(applicationId, {
+          esign_status: "failed",
+          esign_last_provider_message: "Name mismatch detected between KYC and Aadhaar eSign."
+        });
+
+        return res.status(400).json({
+          success: false,
+          message: "Name mismatch detected. The name associated with the Aadhaar used for eSign does not sufficiently match the name provided during KYC. Please verify the Aadhaar details and try again."
+        });
+      }
+    }
+
     let signedDocumentPath = application.esign_signed_pdf_path || "";
 
     if (
@@ -336,7 +377,7 @@ const getEsignStatus = async (req, res) => {
     };
 
     if (statusResult.rawStatus === "sign_complete") {
-      updates.current_step = "esign";
+      updates.current_step = "completed";
       updates.kyc_status = "completed";
       updates.is_completed = true;
       updates.esign_signed_at = new Date();

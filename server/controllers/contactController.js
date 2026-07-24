@@ -432,9 +432,11 @@ const verifyMobileOtp = async (req, res) => {
 
     const contactResult = await client.query(
       `
-      SELECT * FROM public.contact_details
-      WHERE application_id = $1
-        AND mobile_number = $2
+      SELECT cd.*, ka.current_step, ka.kyc_status, ka.is_completed 
+      FROM public.contact_details cd
+      INNER JOIN public.kyc_applications ka ON ka.id = cd.application_id
+      WHERE cd.application_id = $1
+        AND cd.mobile_number = $2
       LIMIT 1
       `,
       [application_id, mobile_number],
@@ -525,6 +527,45 @@ const verifyMobileOtp = async (req, res) => {
       [application_id],
     );
 
+    const contact = contactResult.rows[0];
+
+    let nextStepRoute = "/emailverify"; 
+
+    if (contact.is_completed || contact.kyc_status === 'completed') {
+       nextStepRoute = "/kyc-complete"; 
+    } else {
+       const stepMap = {
+         'contact_details': '/emailverify',
+         'email_registration': '/emailverify',
+         'pan_details': '/panverify',
+         'kra_digilocker': '/kra-details',
+         'kra_details': '/kra-details', 
+         'bank_details': '/bankproof',
+         'personal_details': '/personaldetails',
+         'nominee_details': '/nomination',
+         'live_photo': '/photoverify',
+         'signature': '/uploadsignature',
+         'scheme_details': '/schemedetail',
+         'payment': '/payment-details',
+         'esign': '/esign'
+       };
+       
+       if (stepMap[contact.current_step]) {
+           nextStepRoute = stepMap[contact.current_step];
+       } else if (contact.email_verified) {
+           nextStepRoute = "/panverify"; 
+       }
+    }
+
+    try {
+        await client.query(
+           `INSERT INTO public.kyc_resume_audit_logs (application_id, mobile_number, resumed_from_step, resumed_at) VALUES ($1, $2, $3, NOW())`,
+           [application_id, mobile_number, contact.current_step || 'contact_details']
+        );
+    } catch (auditErr) {
+        console.error("Failed to insert resume audit log:", auditErr.message);
+    }
+
     await client.query("COMMIT");
 
     return res.status(200).json({
@@ -533,7 +574,7 @@ const verifyMobileOtp = async (req, res) => {
       data: {
         application_id,
         mobile_verified: true,
-        next_step: "email_registration",
+        next_step: nextStepRoute,
       },
     });
   } catch (error) {
@@ -885,6 +926,17 @@ const createEmailRegistration = async (req, res) => {
       RETURNING *
       `,
       [email, terms_accepted, application_id],
+    );
+
+    await client.query(
+      `
+      INSERT INTO public.email_terms_consent (
+        application_id,
+        terms_accepted,
+        accepted_at
+      ) VALUES ($1, $2, NOW())
+      `,
+      [application_id, terms_accepted]
     );
 
     await client.query(

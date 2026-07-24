@@ -787,8 +787,50 @@ const downloadSignedEsignDocument = async ({ applicationId, requestId }) => {
   };
 };
 
+const getKycApplicantName = (application) => {
+  const contact = application?.contact_details || {};
+  const personal = application?.personal_details || {};
+  const identity =
+    application?.identity_verifications ||
+    application?.identity_details ||
+    {};
+
+  return (
+    application?.applicant_name ||
+    application?.kra_details?.app_name ||
+    identity?.full_name ||
+    personal?.full_name ||
+    [personal?.first_name, personal?.middle_name, personal?.last_name]
+      .filter(Boolean)
+      .join(" ") ||
+    ""
+  );
+};
+
+const getAadhaarNameFromPayload = (payload) => {
+  if (!payload) return "";
+  
+  if (payload.signers && payload.signers.length > 0) {
+    const signer = payload.signers[0];
+    if (signer.signature?.certificate?.name) {
+      return String(signer.signature.certificate.name);
+    }
+    if (signer.name) {
+      return String(signer.name);
+    }
+  }
+
+  if (payload.signature?.certificate?.name) {
+      return String(payload.signature.certificate.name);
+  }
+  
+  return payload.signerName || payload.aadhaarName || payload.name || "";
+};
+
 module.exports = {
   startEsignForApplication,
   fetchEsignStatus,
   downloadSignedEsignDocument,
+  getKycApplicantName,
+  getAadhaarNameFromPayload,
 };

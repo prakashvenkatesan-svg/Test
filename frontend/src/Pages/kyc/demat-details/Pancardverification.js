@@ -480,6 +480,159 @@ const Pancardverification = () => {
     return uploadResult;
   };
 
+  const normalizeMobileNumber = (value = "") => {
+    const digits = String(value).replace(/\D/g, "");
+
+    // Compare only the final 10 digits, removing +91/91 prefixes.
+    return digits.slice(-10);
+  };
+
+  const normalizeEmailAddress = (value = "") => {
+    return String(value).trim().toLowerCase();
+  };
+
+  const getFirstAvailableValue = (object, keys) => {
+    for (const key of keys) {
+      const value = object?.[key];
+
+      if (value !== undefined && value !== null && String(value).trim()) {
+        return String(value).trim();
+      }
+    }
+
+    return "";
+  };
+
+  const checkKraContactMatch = (kraData = {}) => {
+    // Values saved during the previous mobile/email step.
+    const enteredMobile =
+      localStorage.getItem("mobileNumber") ||
+      localStorage.getItem("mobile_number") ||
+      localStorage.getItem("mobile") ||
+      localStorage.getItem("phoneNumber") ||
+      "";
+
+    const enteredEmail =
+      localStorage.getItem("emailAddress") ||
+      localStorage.getItem("email") ||
+      localStorage.getItem("email_id") ||
+      "";
+
+    // Adjust these keys if your KRA response uses different field names.
+    const kraMobile = getFirstAvailableValue(kraData, [
+      "mobile",
+      "mobile_number",
+      "mobileNumber",
+      "mobile_no",
+      "mobileNo",
+      "phone",
+      "phone_number",
+      "phoneNumber",
+    ]);
+
+    const kraEmail = getFirstAvailableValue(kraData, [
+      "email",
+      "email_id",
+      "emailId",
+      "email_address",
+      "emailAddress",
+    ]);
+
+    const normalizedEnteredMobile = normalizeMobileNumber(enteredMobile);
+
+    const normalizedKraMobile = normalizeMobileNumber(kraMobile);
+
+    const normalizedEnteredEmail = normalizeEmailAddress(enteredEmail);
+
+    const normalizedKraEmail = normalizeEmailAddress(kraEmail);
+
+    // AND operation: both mobile and email must be available and match.
+    const mobileMatched =
+      Boolean(normalizedEnteredMobile && normalizedKraMobile) &&
+      normalizedEnteredMobile === normalizedKraMobile;
+
+    const emailMatched =
+      Boolean(normalizedEnteredEmail && normalizedKraEmail) &&
+      normalizedEnteredEmail === normalizedKraEmail;
+
+    return {
+      mobileMatched,
+      emailMatched,
+      allContactDetailsMatched: mobileMatched && emailMatched,
+    };
+  };
+
+  const redirectToDigiLocker = async ({
+    applicationId,
+    panNumber,
+    reason,
+    contactVerification,
+  }) => {
+    try {
+      /*
+       * This must match your backend route:
+       * router.post("/start", startDigilockerController)
+       */
+      const response = await api.post("/digilocker/start");
+
+      // Your controller returns result.data directly.
+      const digiLockerData = response.data?.data || response.data;
+
+      console.log("DIGILOCKER START RESPONSE:", digiLockerData);
+
+      const requestId =
+        digiLockerData?.id ||
+        digiLockerData?.requestId ||
+        digiLockerData?.request_id;
+
+      const digiLockerUrl =
+        digiLockerData?.url ||
+        digiLockerData?.authorizationUrl ||
+        digiLockerData?.authorization_url ||
+        digiLockerData?.redirectUrl ||
+        digiLockerData?.redirect_url;
+
+      if (!requestId) {
+        throw new Error("DigiLocker request ID was not received.");
+      }
+
+      if (!digiLockerUrl) {
+        throw new Error("DigiLocker login URL was not received.");
+      }
+
+      // Save request ID in your identification table.
+      await api.post("/identify/save-details", {
+        application_id: applicationId,
+        pan_number: panNumber,
+        provider: "digilocker",
+        provider_ref: requestId,
+        verification_reason: reason,
+        mobile_matched: contactVerification?.mobileMatched ?? false,
+        email_matched: contactVerification?.emailMatched ?? false,
+      });
+
+      localStorage.setItem("digilocker_request_id", String(requestId));
+
+      localStorage.setItem("digilocker_flow_reason", reason);
+
+      localStorage.setItem("verification_provider", "digilocker");
+
+      // This opens the actual Setu/DigiLocker page.
+      window.location.assign(digiLockerUrl);
+    } catch (error) {
+      console.error(
+        "START DIGILOCKER ERROR:",
+        error.response?.data || error.message,
+      );
+
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to start DigiLocker verification.",
+      );
+    }
+  };
+
   // ---------------------------------------
   // Verify PAN and upload PAN image
   // ---------------------------------------
@@ -554,10 +707,56 @@ const Pancardverification = () => {
         dateOfBirth: dobIso,
       });
 
+      /*
+       * KRA FLOW
+       *
+       * Continue to KRA details only when:
+       * 1. The PAN is KRA registered.
+       * 2. Entered mobile matches KRA mobile.
+       * 3. Entered email matches KRA email.
+       *
+       * Otherwise continue through DigiLocker.
+       */
       if (result?.isKraRegistered) {
-        navigate("/kra-details", {
-          state: {
-            panData: result.data,
+        const kraData = result?.data || {};
+
+        const { mobileMatched, emailMatched, allContactDetailsMatched } =
+          checkKraContactMatch(kraData);
+
+        console.log("KRA CONTACT MATCH RESULT:", {
+          mobileMatched,
+          emailMatched,
+          allContactDetailsMatched,
+        });
+
+        if (allContactDetailsMatched) {
+          localStorage.setItem("kra_contact_verified", "true");
+
+          navigate("/kra-details", {
+            state: {
+              panData: kraData,
+              contactVerification: {
+                mobileMatched: true,
+                emailMatched: true,
+              },
+            },
+          });
+
+          return;
+        }
+
+        // Either mobile or email did not match.
+        localStorage.setItem("kra_contact_verified", "false");
+
+        localStorage.setItem("digilocker_flow_reason", "KRA_CONTACT_MISMATCH");
+
+        await redirectToDigiLocker({
+          applicationId,
+          panNumber: cleanedPan,
+          reason: "KRA_CONTACT_MISMATCH",
+          contactVerification: {
+            mobileMatched,
+            emailMatched,
           },
         });
 
